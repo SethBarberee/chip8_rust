@@ -3,10 +3,22 @@ use std::fs::File;
 use std::io::prelude::*;
 
 
-fn match_instruction(counter: i64, opcode: &mut [u8]){
-    // TODO buffer holds opcode so match on the two values
+fn match_instruction(counter: i64, buffer: &mut [u8]){
+    // TODO split this more so we can take into account every digit
+    /* let opcode = (
+        (buffer & 0xF000) >> 12 as u8,
+        (buffer & 0x0F00) >> 8 as u8,
+        (buffer & 0x00F0) >> 4 as u8,
+        (buffer & 0x000F) as u8,
+    ); */
+    let opcode = (
+        buffer[0],
+        buffer[1],
+    );
     match opcode {
-        _ => println!("Undefined Opcode on {}: {:x}{:x}", counter, opcode[0], opcode[1]),
+        (0x00, 0xe0) => println!("{:x}: disp_clear()", counter),
+        (0x00, 0xee) => println!("{:x}: return;", counter),
+        _ => println!("Undefined Opcode on {:x}: {:x}{:x}", counter, opcode.0, opcode.1),
     }
 }
 
@@ -17,11 +29,11 @@ fn main() -> std::io::Result<()> {
     let mut pc = 0;
     loop {
         match file.read_exact(&mut buffer) {
-            Ok(T) => {
+            Ok(_t) => {
                 match_instruction(pc, &mut buffer);
                 pc += 2;
             },
-            Err(err) => {
+            Err(_err) => {
                 // We hit this on EOF
                 break Ok(());
             },
